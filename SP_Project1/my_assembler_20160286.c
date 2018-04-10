@@ -174,7 +174,7 @@ int init_input_file(char *input_file)
 	}
 	fclose(file);
 	
-	for(int j = 0; input_data[j] != NULL; j++)
+	for(int j = 0; j < line_num; j++)
 	 printf("%s", input_data[j]);
 	
 	return errno;
@@ -190,13 +190,17 @@ int init_input_file(char *input_file)
  */
 int token_parsing(char *str)
 {
+	/*
 	int op_index;
-	char * temp, operand;
+	char * temp, * operand;
 
+	if (str[0] == '.')
+		return 0;
+	
 	temp = strtok(str, "\t");
 	token_table[token_line] = malloc(sizeof(token));
 
-	if (temp != NULL)
+	if (str[0] !=  '\t')
 	{
 		token_table[token_line]->label = malloc(sizeof(char) * 20);
 		strcpy(token_table[token_line]->label, temp);
@@ -214,18 +218,26 @@ int token_parsing(char *str)
 
 	if (temp != NULL)
 	{
-		//피연산자 길이로 1개 넣을지 2개 넣을지 결정할 것
 		operand = strtok(temp, ",");
-		token_table[token_line]->operand[0]
+		strcpy(token_table[token_line]->operand[0], operand);
+		operand = strtok(NULL, ",");
+		if (operand != NULL)
+		{
+			strcpy(token_table[token_line]->operand[1], operand);
+			operand = strtok(NULL, ",");
+			if (operand != NULL)
+			{
+				strcpy(token_table[token_line]->operand[2], operand);
+			}
+		}
 	}
 
-	
-	strcpy(inst_table[inst_index]->opcode, ptr);
-	ptr = strtok(NULL, " ");
-	inst_table[inst_index]->oprnd_num = atoi(ptr);
+	temp = strtok(NULL, "\t");
 
-	token_line++;
-
+	if (temp != NULL)
+	{
+		strcpy(token_table[token_line]->comment, temp);
+	}*/
 }
 
 /* ----------------------------------------------------------------------------------
@@ -242,7 +254,7 @@ int search_opcode(char *str)
 	char * inst;
 	for (i = 0; i < inst_index; i++)
 	{
-		if (!strcmp(str, inst_table[i]->inst))
+		if (strcmp(str, inst_table[i]->inst) == 0)
 		{
 			return i;
 		}
@@ -271,7 +283,14 @@ static int assem_pass1(void)
 	/* input_data의 문자열을 한줄씩 입력 받아서 
 	 * token_parsing()을 호출하여 token_unit에 저장
 	 */
-
+	int i;
+	/*
+	for (i = 0; i < line_num; i++)
+	{
+		token_parsing(input_data[i]);
+	}
+	*/
+	return 0;
 }
 
 
