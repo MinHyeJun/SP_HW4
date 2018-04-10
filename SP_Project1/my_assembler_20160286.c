@@ -106,7 +106,6 @@ int init_inst_file(char *inst_file)
 	}
 	else
 	{
-		int  i = 0;
 
 		while (0 == feof(file))
 		{
@@ -114,28 +113,25 @@ int init_inst_file(char *inst_file)
 
 			ptr = strtok(str, " ");
 			
-			inst *temp = malloc(sizeof(inst));
-			temp->inst = ptr;
+			inst_table[inst_index] = malloc(sizeof(inst));
+			strcpy(inst_table[inst_index]->inst, ptr);
 			ptr = strtok(NULL, " ");
-			temp->form = atoi(ptr);
+			inst_table[inst_index]->form = atoi(ptr);
 			ptr = strtok(NULL, " ");
-			temp->opcode = ptr;
+			strcpy(inst_table[inst_index]->opcode, ptr);
 			ptr = strtok(NULL, " ");
-			temp->oprnd_num = atoi(ptr);
-			ptr = NULL;
+			inst_table[inst_index]->oprnd_num = atoi(ptr);
 
-			//printf("%s %d %s %d\n", temp.inst, temp.form, temp.opcode, temp.oprnd_num);
-			inst_table[i] = temp;
-			i++;
+			inst_index++;
 		}
 
 		errno = 0;
 	}
 	fclose(file);
-
+	/*
 	for(int j = 0; inst_table[j] != NULL; j++)
 		printf("%s %d %s %d\n", inst_table[j]->inst, inst_table[j]->form, inst_table[j]->opcode, inst_table[j]->oprnd_num);
-
+	*/
 	return errno;
 }
 
@@ -153,6 +149,33 @@ int init_input_file(char *input_file)
 	int errno;
 
 	/* add your code here */
+	char str[20];
+	char *ptr;
+	fopen_s(&file, input_file, "r");
+
+	if (file == NULL)
+	{
+		printf("파일을 읽을 수 없습니다.");
+		errno = -1;
+	}
+	else
+	{
+		int  i = 0;
+
+		while (0 == feof(file))
+		{
+			input_data[line_num] = malloc(sizeof(char) * 255);
+			fgets(input_data[line_num], 255, file);
+
+			line_num++;
+		}
+
+		errno = 0;
+	}
+	fclose(file);
+	
+	for(int j = 0; input_data[j] != NULL; j++)
+	 printf("%s", input_data[j]);
 	
 	return errno;
 }
@@ -165,9 +188,43 @@ int init_input_file(char *input_file)
  * 주의 : my_assembler 프로그램에서는 라인단위로 토큰 및 오브젝트 관리를 하고 있다. 
  * ----------------------------------------------------------------------------------
  */
-int token_parsing(char *str) 
+int token_parsing(char *str)
 {
-	/* add your code here */
+	int op_index;
+	char * temp, operand;
+
+	temp = strtok(str, "\t");
+	token_table[token_line] = malloc(sizeof(token));
+
+	if (temp != NULL)
+	{
+		token_table[token_line]->label = malloc(sizeof(char) * 20);
+		strcpy(token_table[token_line]->label, temp);
+	}
+	
+	temp = strtok(NULL, "\t");
+
+	if (op_index = search_opcode(temp))
+	{
+		token_table[token_line]->operator = malloc(sizeof(char) * 6);
+		strcpy(token_table[token_line]->operator, temp);
+	}
+	
+	temp = strtok(NULL, "\t");
+
+	if (temp != NULL)
+	{
+		//피연산자 길이로 1개 넣을지 2개 넣을지 결정할 것
+		operand = strtok(temp, ",");
+		token_table[token_line]->operand[0]
+	}
+
+	
+	strcpy(inst_table[inst_index]->opcode, ptr);
+	ptr = strtok(NULL, " ");
+	inst_table[inst_index]->oprnd_num = atoi(ptr);
+
+	token_line++;
 
 }
 
@@ -181,8 +238,17 @@ int token_parsing(char *str)
  */
 int search_opcode(char *str) 
 {
-	/* add your code here */
+	int i;
+	char * inst;
+	for (i = 0; i < inst_index; i++)
+	{
+		if (!strcmp(str, inst_table[i]->inst))
+		{
+			return i;
+		}
+	}
 
+	return -1;
 }
 
 /* ----------------------------------------------------------------------------------
