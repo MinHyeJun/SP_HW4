@@ -222,20 +222,23 @@ int token_parsing(char *str)
 
 	if (line != NULL)
 	{
-		strcpy(temp, line);
-
-		line = strtok(NULL, "\t");
-
-		char * operand = strtok(temp, ",");
-
 		for (int j = 0; j < 3; j++)
 			token_table[token_line]->operand[j] = NULL;
 
-		for (int j = 0; operand != NULL; j++)
+		if (inst_table[op_index]->oprnd_num > 0)
 		{
-			token_table[token_line]->operand[j] = malloc(sizeof(char) * 100);
-			strcpy(token_table[token_line]->operand[j], operand);
-			operand = strtok(NULL, ",");
+			strcpy(temp, line);
+
+			line = strtok(NULL, "\t");
+
+			char * operand = strtok(temp, ",");
+
+			for (int j = 0; operand != NULL; j++)
+			{
+				token_table[token_line]->operand[j] = malloc(sizeof(char) * 100);
+				strcpy(token_table[token_line]->operand[j], operand);
+				operand = strtok(NULL, ",");
+			}
 		}
 
 		if (line != NULL)
