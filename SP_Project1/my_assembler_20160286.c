@@ -190,54 +190,66 @@ int init_input_file(char *input_file)
  */
 int token_parsing(char *str)
 {
-	/*
-	int op_index;
-	char * temp, * operand;
-
-	if (str[0] == '.')
-		return 0;
 	
-	temp = strtok(str, "\t");
-	token_table[token_line] = malloc(sizeof(token));
+	int op_index;
+	char * line, temp[100];
 
+	line = strtok(str, "\t");
+	token_table[token_line] = malloc(sizeof(token));
+	
 	if (str[0] !=  '\t')
 	{
 		token_table[token_line]->label = malloc(sizeof(char) * 20);
-		strcpy(token_table[token_line]->label, temp);
+		strcpy(token_table[token_line]->label, line);
+		line = strtok(NULL, "\t");
 	}
-	
-	temp = strtok(NULL, "\t");
-
-	if (op_index = search_opcode(temp))
+	else
 	{
-		token_table[token_line]->operator = malloc(sizeof(char) * 6);
-		strcpy(token_table[token_line]->operator, temp);
+		token_table[token_line]->label = NULL;
 	}
-	
-	temp = strtok(NULL, "\t");
 
-	if (temp != NULL)
+	if (line != NULL && (op_index = search_opcode(line)) > 0)
 	{
-		operand = strtok(temp, ",");
-		strcpy(token_table[token_line]->operand[0], operand);
-		operand = strtok(NULL, ",");
-		if (operand != NULL)
+		token_table[token_line]->operator = malloc(sizeof(char) * 8);
+		strcpy(token_table[token_line]->operator, line);
+	}
+	else
+	{
+		return 0;
+	}
+
+	line = strtok(NULL, "\t");
+
+	if (line != NULL)
+	{
+		strcpy(temp, line);
+
+		line = strtok(NULL, "\t");
+
+		char * operand = strtok(temp, ",");
+
+		for (int j = 0; j < 3; j++)
+			token_table[token_line]->operand[j] = NULL;
+
+		for (int j = 0; operand != NULL; j++)
 		{
-			strcpy(token_table[token_line]->operand[1], operand);
+			token_table[token_line]->operand[j] = malloc(sizeof(char) * 100);
+			strcpy(token_table[token_line]->operand[j], operand);
 			operand = strtok(NULL, ",");
-			if (operand != NULL)
-			{
-				strcpy(token_table[token_line]->operand[2], operand);
-			}
+		}
+
+		if (line != NULL)
+		{
+			token_table[token_line]->comment = malloc(sizeof(char) * 1024);
+			strcpy(token_table[token_line]->comment, line);
+		}
+		else
+		{
+			token_table[token_line]->comment = NULL;
 		}
 	}
 
-	temp = strtok(NULL, "\t");
-
-	if (temp != NULL)
-	{
-		strcpy(token_table[token_line]->comment, temp);
-	}*/
+	token_line++;
 }
 
 /* ----------------------------------------------------------------------------------
@@ -252,6 +264,7 @@ int search_opcode(char *str)
 {
 	int i;
 	char * inst;
+
 	for (i = 0; i < inst_index; i++)
 	{
 		if (strcmp(str, inst_table[i]->inst) == 0)
@@ -284,12 +297,10 @@ static int assem_pass1(void)
 	 * token_parsing()을 호출하여 token_unit에 저장
 	 */
 	int i;
-	/*
 	for (i = 0; i < line_num; i++)
 	{
 		token_parsing(input_data[i]);
 	}
-	*/
 	return 0;
 }
 
