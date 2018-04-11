@@ -197,7 +197,7 @@ int token_parsing(char *str)
 	line = strtok(str, "\t");
 	token_table[token_line] = malloc(sizeof(token));
 	
-	if (str[0] !=  '\t')
+	if (str[0] != '\t')
 	{
 		token_table[token_line]->label = malloc(sizeof(char) * 20);
 		strcpy(token_table[token_line]->label, line);
@@ -208,10 +208,15 @@ int token_parsing(char *str)
 		token_table[token_line]->label = NULL;
 	}
 
-	if (line != NULL && (op_index = search_opcode(line)) > 0)
+	if (line != NULL)
 	{
-		token_table[token_line]->operator = malloc(sizeof(char) * 8);
-		strcpy(token_table[token_line]->operator, line);
+		if ((op_index = search_opcode(line)) > 0)
+		{
+			token_table[token_line]->operator = malloc(sizeof(char) * 8);
+			strcpy(token_table[token_line]->operator, line);
+		}
+		else
+			return 0;
 	}
 	else
 	{
@@ -243,8 +248,14 @@ int token_parsing(char *str)
 
 		if (line != NULL)
 		{
-			token_table[token_line]->comment = malloc(sizeof(char) * 1024);
-			strcpy(token_table[token_line]->comment, line);
+			line = strtok(line, "\n");
+			if (line != NULL)
+			{
+				token_table[token_line]->comment = malloc(sizeof(char) * 1024);
+				strcpy(token_table[token_line]->comment, line);
+			}
+			else
+				token_table[token_line]->comment = NULL;
 		}
 		else
 		{
@@ -267,6 +278,9 @@ int search_opcode(char *str)
 {
 	int i;
 	char * inst;
+
+	if (str[0] == '+')
+		str = str + 1;
 
 	for (i = 0; i < inst_index; i++)
 	{
