@@ -191,14 +191,23 @@ int init_input_file(char *input_file)
 int token_parsing(char *str)
 {
 	
-	int op_index;
+	int op_index = -1;
 	char * line, temp[100];
+
+	if (str[0] == '.')
+		return 0;
+
 	char * input = malloc(sizeof(char) * 255);
 
 	strcpy(input, str);
 
 	line = strtok(input, "\t");
 	token_table[token_line] = malloc(sizeof(token));
+	token_table[token_line]->label = NULL;
+	token_table[token_line]->operator = NULL;
+	for (int j = 0; j < 3; j++)
+		token_table[token_line]->operand[j] = NULL;
+	token_table[token_line]->comment = NULL;
 	
 	if (str[0] != '\t')
 	{
@@ -206,20 +215,12 @@ int token_parsing(char *str)
 		strcpy(token_table[token_line]->label, line);
 		line = strtok(NULL, "\t");
 	}
-	else
-	{
-		token_table[token_line]->label = NULL;
-	}
 
 	if (line != NULL)
 	{
-		if ((op_index = search_opcode(line)) > 0)
-		{
-			token_table[token_line]->operator = malloc(sizeof(char) * 8);
-			strcpy(token_table[token_line]->operator, line);
-		}
-		else
-			return 0;
+		op_index = search_opcode(line);
+		token_table[token_line]->operator = malloc(sizeof(char) * 10);
+		strcpy(token_table[token_line]->operator, line);
 	}
 	else
 	{
@@ -230,10 +231,7 @@ int token_parsing(char *str)
 
 	if (line != NULL)
 	{
-		for (int j = 0; j < 3; j++)
-			token_table[token_line]->operand[j] = NULL;
-
-		if (inst_table[op_index]->oprnd_num > 0)
+		if (!(op_index >= 0 && inst_table[op_index]->oprnd_num == 0))
 		{
 			strcpy(temp, line);
 
@@ -251,17 +249,8 @@ int token_parsing(char *str)
 
 		if (line != NULL)
 		{
-			if (line != NULL)
-			{
-				token_table[token_line]->comment = malloc(sizeof(char) * 1024);
-				strcpy(token_table[token_line]->comment, line);
-			}
-			else
-				token_table[token_line]->comment = NULL;
-		}
-		else
-		{
-			token_table[token_line]->comment = NULL;
+			token_table[token_line]->comment = malloc(sizeof(char) * 1024);
+			strcpy(token_table[token_line]->comment, line);
 		}
 	}
 
@@ -339,10 +328,9 @@ void make_opcode_output(char *file_name)
 	/* add your code here */
 	
 	FILE * file;
-	int op_index, input_index = 0;
+	int op_index, input_index = 0, op_cnt;
 	char lable[20], operator[8], operand[255], output[1023], init[1023] = { 0 };
 	char * input, * line;
-	_Bool isInst = 0;
 
 	if (file_name == NULL)
 	{
@@ -364,29 +352,33 @@ void make_opcode_output(char *file_name)
 		strcpy(operator, init);
 		strcpy(operand, init);
 		strcpy(output, init);
+		op_cnt = 0;
 
 		op_index = search_opcode(token_table[i]->operator);
 
+		if (token_table[i]->label != NULL)
+			strcpy(lable, token_table[i]->label);
+
 		strcpy(operator, token_table[i]->operator);
 		
-		for (int j = 0; j < inst_table[op_index]->oprnd_num; j++)
+		for (int j = 0; token_table[i]->operand[j] != NULL; j++)
 		{
-			if (token_table[i]->label != NULL)
-				strcpy(lable, token_table[i]->label);
+			op_cnt++;
+		}
 
+		for (int j = 0; j < op_cnt; j++)
+		{
 			strcat(operand, token_table[i]->operand[j]);
 
-			if(j != inst_table[op_index]->oprnd_num - 1)
+			if (j < op_cnt - 1)
 				strcat(operand, ",");
 		}
 
-		sprintf(output, "%s\t%s\t%s", lable, operator, operand);
+		sprintf(output, "%s\t%s\t%-20s", lable, operator, operand);
 
-		if ((strstr(input_data[input_index], output)) == NULL)
+		if (op_index < 0)
 		{
-			strcpy(output, input_data[input_index]);
-			fprintf(file, "%s", output);
-			i--;
+			fprintf(file, "%s\n", output);
 		}
 		else
 		{
