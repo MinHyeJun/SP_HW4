@@ -16,7 +16,7 @@ struct inst_unit {
 	/* add your code here */
 	char inst[6];
 	int form;
-	char opcode[2];
+	char opcode[3];
 	int oprnd_num;
 };
 typedef struct inst_unit inst;

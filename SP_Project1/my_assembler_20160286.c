@@ -41,7 +41,7 @@ int main(int args, char *arg[])
 		printf("assem_pass1: 패스1 과정에서 실패하였습니다.  \n") ; 
 		return -1 ; 
 	}
-	make_opcode_output("output_20160286");
+	make_opcode_output("output_20160286.txt");
 
 	/*
 	* 추후 프로젝트에서 사용되는 부분
@@ -223,7 +223,7 @@ int token_parsing(char *str)
 		return 0;
 	}
 
-	line = strtok(NULL, "\t");
+	line = strtok(NULL, "\t\n");
 
 	if (line != NULL)
 	{
@@ -234,7 +234,7 @@ int token_parsing(char *str)
 		{
 			strcpy(temp, line);
 
-			line = strtok(NULL, "\t");
+			line = strtok(NULL, "\t\n");
 
 			char * operand = strtok(temp, ",");
 
@@ -248,7 +248,7 @@ int token_parsing(char *str)
 
 		if (line != NULL)
 		{
-			line = strtok(line, "\n");
+//			line = strtok(line, "\n");
 			if (line != NULL)
 			{
 				token_table[token_line]->comment = malloc(sizeof(char) * 1024);
@@ -335,7 +335,49 @@ static int assem_pass1(void)
 void make_opcode_output(char *file_name)
 {
 	/* add your code here */
+	
+	FILE * file;
+	int op_index, input_index = 0;
+	char lable[20] = { 0 };
+	char operand[255], init[255] = { 0 };
 
+	if (file_name == NULL)
+	{
+		printf("입력된 파일 이름이 없습니다.");
+		return 0;
+	}
+
+	fopen_s(&file, file_name, "w");
+
+	if (file == NULL)
+	{
+		printf("해당 이름의 파일을 작성할 수 없습니다.");
+		return 0;
+	}
+
+	for (int i = 0; i < token_line; i++)
+	{
+		strcpy(lable, init);
+		strcpy(operand, init);
+
+		op_index = search_opcode(token_table[i]->operator);
+		
+		for (int j = 0; j < inst_table[op_index]->oprnd_num; j++)
+		{
+			if (token_table[i]->label != NULL)
+				strcpy(lable, token_table[i]->label);
+
+			strcat(operand, token_table[i]->operand[j]);
+
+			if(j != inst_table[op_index]->oprnd_num - 1)
+				strcat(operand, ",");
+		}
+		fprintf(file, "%s\t%s\t%s\t%s\n", lable, token_table[i]->operator, operand, inst_table[op_index]->opcode);
+
+		input_index++;
+	}
+
+	fclose(file);
 }
 
 
