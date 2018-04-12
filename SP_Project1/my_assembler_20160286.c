@@ -268,6 +268,8 @@ int token_parsing(char *str)
 			token_table[token_line]->comment = malloc(sizeof(char) * 1024);
 			strcpy(token_table[token_line]->comment, line);
 		}
+
+		free(input);
 	}
 	// 한 라인의 소스코드를 토큰별로 모두 분리했으므로 토큰의 수를 저장하는 token_line의 값을 1 올림
 	token_line++;
