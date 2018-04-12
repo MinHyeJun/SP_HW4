@@ -201,19 +201,19 @@ int token_parsing(char *str)
 
 	strcpy(input, str);
 
-	line = strtok(input, "\t");
+	line = strtok(input, "\t\n");
 	token_table[token_line] = malloc(sizeof(token));
 	token_table[token_line]->label = NULL;
 	token_table[token_line]->operator = NULL;
-	for (int j = 0; j < 3; j++)
-		token_table[token_line]->operand[j] = NULL;
+	for (int i = 0; i < 3; i++)
+		token_table[token_line]->operand[i] = NULL;
 	token_table[token_line]->comment = NULL;
 	
 	if (str[0] != '\t')
 	{
 		token_table[token_line]->label = malloc(sizeof(char) * 20);
 		strcpy(token_table[token_line]->label, line);
-		line = strtok(NULL, "\t");
+		line = strtok(NULL, "\t\n");
 	}
 
 	if (line != NULL)
@@ -221,20 +221,18 @@ int token_parsing(char *str)
 		op_index = search_opcode(line);
 		token_table[token_line]->operator = malloc(sizeof(char) * 10);
 		strcpy(token_table[token_line]->operator, line);
+		line = strtok(NULL, "\t\n");
 	}
 	else
 	{
 		return 0;
 	}
 
-	line = strtok(NULL, "\t\n");
-
 	if (line != NULL)
 	{
 		if (!(op_index >= 0 && inst_table[op_index]->oprnd_num == 0))
 		{
 			strcpy(temp, line);
-
 			line = strtok(NULL, "\t\n");
 
 			char * operand = strtok(temp, ",");
@@ -330,7 +328,6 @@ void make_opcode_output(char *file_name)
 	FILE * file;
 	int op_index, input_index = 0, op_cnt;
 	char lable[20], operator[8], operand[255], output[1023], init[1023] = { 0 };
-	char * input, * line;
 
 	if (file_name == NULL)
 	{
@@ -374,7 +371,7 @@ void make_opcode_output(char *file_name)
 				strcat(operand, ",");
 		}
 
-		sprintf(output, "%s\t%s\t%-20s", lable, operator, operand);
+		sprintf(output, "%-10s\t%s\t%-20s", lable, operator, operand);
 
 		if (op_index < 0)
 		{
@@ -388,82 +385,6 @@ void make_opcode_output(char *file_name)
 		input_index++;
 	}
 	
-	/*
-	for (int i = 0; i < line_num; i++)
-	{
-		strcpy(lable, init);
-		strcpy(operator, init);
-		strcpy(operand, init);
-
-		input = malloc(sizeof(char) * 255);
-		strcpy(input, input_data[i]);
-
-		line = strtok(input, "\t");
-		token_table[token_line] = malloc(sizeof(token));
-
-		if (input[0] != '\t')
-		{
-			strcpy(lable, line);
-			line = strtok(NULL, "\t");
-		}
-
-		if (line != NULL)
-		{
-			if (strcmp(line, token_table[token_index]->operator) == 0)
-			{
-				strcpy(operator, line);
-				line = strtok(NULL, "\t");
-			}
-		}
-
-		if (line != NULL)
-		{
-			if (inst_table[op_index]->oprnd_num > 0)
-			{
-				char * operand = strtok(temp, ",");
-
-				for (int j = 0; operand != NULL; j++)
-				{
-					token_table[token_line]->operand[j] = malloc(sizeof(char) * 100);
-					strcpy(token_table[token_line]->operand[j], operand);
-					operand = strtok(NULL, ",");
-				}
-			}
-		}
-
-
-
-
-
-
-
-		//////////////////////
-		if (isInst)
-		{
-			strcpy(lable, init);
-			strcpy(operand, init);
-			strcpy(output, init);
-
-			op_index = search_opcode(token_table[token_index]->operator);
-
-			for (int j = 0; j < inst_table[op_index]->oprnd_num; j++)
-			{
-
-				strcat(operand, token_table[token_index]->operand[j]);
-
-				if (j != inst_table[op_index]->oprnd_num - 1)
-					strcat(operand, ",");
-			}
-
-			fprintf(file, "%s\t%s\t%s\t%s\n", lable, token_table[token_index]->operator, operand, inst_table[op_index]->opcode);
-			token_index++;
-		}
-		else
-		{
-			fprintf(file, "%s", input_data[i]);
-		}
-	}
-	*/
 	fclose(file);
 }
 
