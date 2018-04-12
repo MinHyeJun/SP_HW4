@@ -193,8 +193,11 @@ int token_parsing(char *str)
 	
 	int op_index;
 	char * line, temp[100];
+	char * input = malloc(sizeof(char) * 255);
 
-	line = strtok(str, "\t");
+	strcpy(input, str);
+
+	line = strtok(input, "\t");
 	token_table[token_line] = malloc(sizeof(token));
 	
 	if (str[0] != '\t')
@@ -248,7 +251,6 @@ int token_parsing(char *str)
 
 		if (line != NULL)
 		{
-//			line = strtok(line, "\n");
 			if (line != NULL)
 			{
 				token_table[token_line]->comment = malloc(sizeof(char) * 1024);
@@ -338,8 +340,9 @@ void make_opcode_output(char *file_name)
 	
 	FILE * file;
 	int op_index, input_index = 0;
-	char lable[20] = { 0 };
-	char operand[255], init[255] = { 0 };
+	char lable[20], operator[8], operand[255], output[1023], init[1023] = { 0 };
+	char * input, * line;
+	_Bool isInst = 0;
 
 	if (file_name == NULL)
 	{
@@ -354,13 +357,17 @@ void make_opcode_output(char *file_name)
 		printf("해당 이름의 파일을 작성할 수 없습니다.");
 		return 0;
 	}
-
+	
 	for (int i = 0; i < token_line; i++)
 	{
 		strcpy(lable, init);
+		strcpy(operator, init);
 		strcpy(operand, init);
+		strcpy(output, init);
 
 		op_index = search_opcode(token_table[i]->operator);
+
+		strcpy(operator, token_table[i]->operator);
 		
 		for (int j = 0; j < inst_table[op_index]->oprnd_num; j++)
 		{
@@ -372,11 +379,99 @@ void make_opcode_output(char *file_name)
 			if(j != inst_table[op_index]->oprnd_num - 1)
 				strcat(operand, ",");
 		}
-		fprintf(file, "%s\t%s\t%s\t%s\n", lable, token_table[i]->operator, operand, inst_table[op_index]->opcode);
+
+		sprintf(output, "%s\t%s\t%s", lable, operator, operand);
+
+		if ((strstr(input_data[input_index], output)) == NULL)
+		{
+			strcpy(output, input_data[input_index]);
+			fprintf(file, "%s", output);
+			i--;
+		}
+		else
+		{
+			fprintf(file, "%s\t%s\n", output, inst_table[op_index]->opcode);
+		}
 
 		input_index++;
 	}
+	
+	/*
+	for (int i = 0; i < line_num; i++)
+	{
+		strcpy(lable, init);
+		strcpy(operator, init);
+		strcpy(operand, init);
 
+		input = malloc(sizeof(char) * 255);
+		strcpy(input, input_data[i]);
+
+		line = strtok(input, "\t");
+		token_table[token_line] = malloc(sizeof(token));
+
+		if (input[0] != '\t')
+		{
+			strcpy(lable, line);
+			line = strtok(NULL, "\t");
+		}
+
+		if (line != NULL)
+		{
+			if (strcmp(line, token_table[token_index]->operator) == 0)
+			{
+				strcpy(operator, line);
+				line = strtok(NULL, "\t");
+			}
+		}
+
+		if (line != NULL)
+		{
+			if (inst_table[op_index]->oprnd_num > 0)
+			{
+				char * operand = strtok(temp, ",");
+
+				for (int j = 0; operand != NULL; j++)
+				{
+					token_table[token_line]->operand[j] = malloc(sizeof(char) * 100);
+					strcpy(token_table[token_line]->operand[j], operand);
+					operand = strtok(NULL, ",");
+				}
+			}
+		}
+
+
+
+
+
+
+
+		//////////////////////
+		if (isInst)
+		{
+			strcpy(lable, init);
+			strcpy(operand, init);
+			strcpy(output, init);
+
+			op_index = search_opcode(token_table[token_index]->operator);
+
+			for (int j = 0; j < inst_table[op_index]->oprnd_num; j++)
+			{
+
+				strcat(operand, token_table[token_index]->operand[j]);
+
+				if (j != inst_table[op_index]->oprnd_num - 1)
+					strcat(operand, ",");
+			}
+
+			fprintf(file, "%s\t%s\t%s\t%s\n", lable, token_table[token_index]->operator, operand, inst_table[op_index]->opcode);
+			token_index++;
+		}
+		else
+		{
+			fprintf(file, "%s", input_data[i]);
+		}
+	}
+	*/
 	fclose(file);
 }
 
