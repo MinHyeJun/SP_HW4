@@ -45,8 +45,8 @@ int main(int args, char *arg[])
 	}
 
 	// 어셈블리 코드의 명령어 Opcode와 함께 파일에 출력
-	make_opcode_output("output_20160286.txt");
-
+	//make_opcode_output("output_20160286.txt
+	make_opcode_output(NULL);
 	/*
 	* 추후 프로젝트에서 사용되는 부분
 	*
@@ -164,13 +164,13 @@ int init_input_file(char *input_file)
 		printf("파일을 읽을 수 없습니다.");
 		errno = -1;
 	}
-	else  // 파일을 열었다면 한 라인씩 읽어 이름, 형식, 기계어 코드, 오퍼랜드의 개수 순으로 나누어 구조체에 저장
+	else  // 파일을 열었다면 한 라인씩 읽어 저장
 	{
 		while (0 == feof(file))  // 파일의 끝(EOF)에 도달하기 전까지 반복 
 		{
-			// 어셈블리할 소스코드를 저장하기 위한 input_data 배열의 원소에 문자열 동적 할당
+			// input_data 배열의 각 원소에 문자열 동적 할당 후 어셈블리할 소스코드 저장
 			input_data[line_num] = malloc(sizeof(char) * 1024);  
-			fgets(input_data[line_num], 1024, file);  // 파일을 한 라인씩 읽어들여 input_data에 차례로 저장
+			fgets(input_data[line_num], 1024, file); 
 
 			line_num++;  // 하나를 무사히 저장했다면 소스코드 라인 수를 저장하는 line_num의 값을 하나 올림
 		}
@@ -192,11 +192,11 @@ int init_input_file(char *input_file)
  */
 int token_parsing(char *str)
 {
-	// 토큰 테이블을 작성할 소스 코드의 명령어가 inst_table 상으로 어디에 있는지 저장
-	int op_index = -1;
-	// input: 인자로 받은 문자열 str을 탭과 개행을 기준으로 분리하기 위해 임시로 저장하기 위한 포인터
-	// line: 분리한 문자열을 임시로 담기 위한 포인터 
+	// op_index: 토큰 테이블을 작성할 소스 코드의 명령어가 inst_table 상으로 어디에 있는지 저장
+	// input: 인자로 받은 문자열 str을 임시로 저장하기 위한 포인터
+	// line: 탭과 개행 기준으로 문자열 input을 분리할 때, 분리된 문자열을 임시로 담기 위한 포인터 
 	// temp: 오퍼랜드를 저장하기 위한 임시 문자열
+	int op_index = -1;
 	char  * input, *line, temp[256];
 
 	if (str[0] == '.')  // 소스코드의 시작이 "."이라면 토큰을 분리하지 않고 함수를 끝냄
@@ -212,7 +212,7 @@ int token_parsing(char *str)
 	token_table[token_line] = malloc(sizeof(token));
 	token_table[token_line]->label = NULL;
 	token_table[token_line]->operator = NULL;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < MAX_OPERAND; i++)
 		token_table[token_line]->operand[i] = NULL;
 	token_table[token_line]->comment = NULL;
 
@@ -220,19 +220,20 @@ int token_parsing(char *str)
 
 	if (input[0] != '\t')  // 소스코드의 첫 문자가 탭이 아닌 경우, 레이블이 존재하여 line에 레이블이 반환됨
 	{
-		//레이블을 저장하기 위해 구조체 내부에 레이블 저장하는 변수 동적 할당
+		// 구조체 내부에 레이블 저장하는 변수 동적 할당 후, line에 담긴 레이블 정보를 구조체 내부에 저장
 		token_table[token_line]->label = malloc(sizeof(char) * 30);
-		strcpy(token_table[token_line]->label, line);  // 레이블 내용이 반환된 line을 구조체 내부에 저장
-		line = strtok(NULL, "\t\n");  // 레이블을 임시 공간에 저장했으므로 다음 저장할 문자열을 가져옴
+		strcpy(token_table[token_line]->label, line);
+		line = strtok(NULL, "\t\n");  // 레이블을 저장했으므로 다음 저장할 문자열을 가져옴
 	}
 
 	if (line != NULL)  // 다음 저장할 문자열이 있는 경우 line에 명령어 혹은 지시어가 반환됨
 	{
 		// line의 문자열이 명령어인 경우, 해당 명령어의 inst_table 상의 index 반환
 		op_index = search_opcode(line);
-		// line의 문자열을 저장하기 위해 구조체 내부에 레이블 저장하는 변수 동적 할당
+
+		// 구조체 내부에 레이블 저장하는 변수 동적 할당 후, line에 담긴 operator 정보를 구조체 내부에 저장
 		token_table[token_line]->operator = malloc(sizeof(char) * 30);
-		strcpy(token_table[token_line]->operator, line);  // line 문자열을 구조체 내부에 저장
+		strcpy(token_table[token_line]->operator, line);
 		line = strtok(NULL, "\t\n");  // 다음 저장할 문자열을 가져옴
 	}
 	else  // 다음 저장할 문자열이 없는 경우 함수 종료
@@ -287,9 +288,9 @@ int search_opcode(char *str)
 {
 	int i;  // for문을 사용하기 위한 임시 변수
 
-	// 명령어인지 여부를 확인하기 전에, 문자열 str의 첫번째 문자가 '+'인 경우 
+	// 기계어 코드인지 여부를 확인하기 전에, 문자열 str의 첫번째 문자가 '+'인 경우 
 	// '+' 다음을 가리키도록 함
-	// '+'가 있으면 명렁어인지 여부를 확인할 수 없기 때문에 처리함
+	// '+'가 있으면 기계어 코드인지 여부를 확인할 수 없기 때문에 처리함
 	if (str[0] == '+')  
 		str = str + 1;
 
@@ -303,7 +304,7 @@ int search_opcode(char *str)
 		}
 	}
 
-	// 찾을 수 없다면 명령어가 아닌 것이므로 -1을 반환
+	// 찾을 수 없다면 -1을 반환
 	return -1;
 }
 
@@ -352,27 +353,31 @@ void make_opcode_output(char *file_name)
 {
 	/* add your code here */
 	
-	FILE * file;  // 인자로 받은 파일명으로 파일을 열기 위한 파일 포인터
+	// file: 인자로 받은 파일명으로 파일을 열기 위한 파일 포인터
 	// op_index: 현재 출력하는 소스코드에 명령어가 포함된 경우 해당 명령어가 inst_table 상으로 어디에 있는지 저장
 	// op_cnt: 현재 출력하는 소스코드의 피연산자의 개수를 세기 위함
+	// label, operator, operand: 출력하기 위한 레이블, 연산자, 피연산자를 각각 임시로 담는 용도
+	// output: 출력하기 위해 문자열들을 담는 용도
+	// init: 앞선 네 배열을 초기화하기 위한 용도
+	// isFile: 파일에 출력할 것인지(1), 표준 출력으로 보여줄 것인지(0)
+	FILE * file;  
 	int op_index, op_cnt;
-	// 출력하기 위한 레이블, 연산자, 피연산자를 각각 lable, operator, operand에 담은 후, 
-	// 출력하기 전 output에 담아 파일에 출력
-	// init은 앞선 네 배열을 초기화하기 위한 용도
 	char lable[20], operator[8], operand[255], output[1024], init[1024] = { 0 };
+	_Bool isFile = 1;
 
-	if (file_name == NULL)  // 인자에 NULL이 들어온 경우 표준 출력 후 함수를 끝냄
+	if (file_name == NULL)  // 인자에 NULL이 들어온 경우 표준 출력
 	{
-		printf("입력된 파일 이름이 없습니다.");
-		return 0;
+		isFile = 0;
 	}
-
-	fopen_s(&file, file_name, "w");  // 인자로 받은 파일명으로 파일을 쓰기용으로 엶
-
-	if (file == NULL) // 파일을 열 수 없다면 표준 출력 후 함수를 끝냄
+	else
 	{
-		printf("해당 이름의 파일을 작성할 수 없습니다.");
-		return 0;
+		fopen_s(&file, file_name, "w");  // 인자로 받은 파일명으로 파일을 쓰기용으로 엶
+
+		if (file == NULL) // 파일을 열 수 없다면 표준 출력 후 함수를 끝냄
+		{
+			printf("해당 이름의 파일을 작성할 수 없습니다.");
+			return 0;
+		}
 	}
 	
 	// 토큰으로 분리했던 소스코드를 출력
@@ -413,19 +418,61 @@ void make_opcode_output(char *file_name)
 		// 출력을 위해 위에서 저장한 레이블, 연산자, 피연산자 정보를 배열 output에 모두 담음
 		sprintf(output, "%-10s\t%s\t%-20s", lable, operator, operand);
 
-		// 명령어 인덱스를 저장하는 op_index의 값이 0보다 작은 경우 (명령어가 아닌 경우)
-		if (op_index < 0)
+		if (op_index >= 0)  // 명령어 인덱스를 저장하는 op_index의 값이 0보다 같거나 큰 경우 (테이블에 존재하는 명령어인 경우)
 		{
-			fprintf(file, "%s\n", output);  // output 그대로 파일에 출력
+			// 해당 명령어의 기계어 코드를 출력할 문자열 output에 포함시킴
+			sprintf(output, "%s\t%s", output, inst_table[op_index]->opcode);
 		}
-		else  // 명령어 인덱스를 저장하는 op_index의 값이 0보다 같거나 큰 경우 (명령어인 경우)
+
+		// 파일에서 출력하는 경우, fprintf로 파일에 명령어 출력
+		if (isFile)
 		{
-			// 해당 명령어의 기계어 코드와 함께 파일에 출력
-			fprintf(file, "%s\t%s\n", output, inst_table[op_index]->opcode);  
+			fprintf(file, "%s\n", output);
+			fclose(file);  // 연 파일을 닫음
+		}
+		else // 파일에 출력하는 경우가 아니라면 표준출력으로 명령어 출력
+		{
+			printf("%s\n", output);
 		}
 	}
-	
-	fclose(file);  // 연 파일을 닫음
+
+	freeAll();  // 메모리 동적할당 모두 반환
+}
+
+// 메모리 동적할당 모두 반환하는 함수
+void freeAll(void) {
+	int i;
+
+	// 기계어 코드 테이블 반환
+	for (i = 0; i < inst_index; i++)
+	{
+		free(inst_table[i]);
+	}
+
+	// 토큰 테이블 반환
+	for (i = 0; i < token_line; i++)
+	{
+		if (token_table[i]->label != NULL)
+			free(token_table[i]->label);
+
+		if (token_table[i]->operator != NULL)
+			free(token_table[i]->operator);
+
+		for (int j = 0; j < MAX_OPERAND; j++)
+			if (token_table[i]->operand[j] != NULL)
+				free(token_table[i]->operand[j]);
+
+		if (token_table[i]->comment != NULL)
+			free(token_table[i]->comment);
+
+		free(token_table[i]);
+	}
+
+	// 소스코드 테이블 반환
+	for (i = 0; i < line_num; i++)
+	{
+		free(input_data[i]);
+	}
 }
 
 

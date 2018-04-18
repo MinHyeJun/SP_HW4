@@ -14,7 +14,7 @@
  */
 struct inst_unit {
 	/* add your code here */
-	char inst[6];
+	char inst[10];
 	int form;
 	char opcode[3];
 	int oprnd_num;
@@ -74,6 +74,8 @@ int token_parsing(char *str);
 int search_opcode(char *str);
 static int assem_pass1(void);
 void make_opcode_output(char *file_name);
+
+void freeAll();
 
 /* 추후 프로젝트에서 사용하게 되는 함수*/
 static int assem_pass2(void);
