@@ -360,7 +360,7 @@ void make_opcode_output(char *file_name)
 	// output: 출력하기 위해 문자열들을 담는 용도
 	// init: 앞선 네 배열을 초기화하기 위한 용도
 	// isFile: 파일에 출력할 것인지(1), 표준 출력으로 보여줄 것인지(0)
-	FILE * file;  
+	FILE * file = NULL;  
 	int op_index, op_cnt;
 	char lable[20], operator[8], operand[255], output[1024], init[1024] = { 0 };
 	_Bool isFile = 1;
